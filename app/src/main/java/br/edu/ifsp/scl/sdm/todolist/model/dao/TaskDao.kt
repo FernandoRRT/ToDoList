@@ -7,9 +7,11 @@ import androidx.room.Query
 import androidx.room.Update
 import br.edu.ifsp.scl.sdm.todolist.model.entity.Task
 
+// Interface que define as operações de CRUD para a entidade Task
 @Dao
 interface TaskDao {
     companion object {
+        //dei o nome de task para a tabela
         const val TASK_TABLE = "task"
     }
     @Insert
