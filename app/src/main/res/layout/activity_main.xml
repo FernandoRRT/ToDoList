@@ -16,7 +16,9 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
+<!--Toda a comunicação que vai ocorrer aqui será da comunicação entre esses dois gráficos.
+ A vantagem de usar navigation e actions é a facilidade de controlar a pilha de fragments.
+ Se não usar ele dessa forma a gente vai ter que controlar o ciclo de vida de todos os fragments -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/navigationHostFcv"
         android:name="androidx.navigation.fragment.NavHostFragment"
