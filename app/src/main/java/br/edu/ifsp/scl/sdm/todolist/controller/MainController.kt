@@ -35,7 +35,7 @@ class MainController(private val mainFragment: MainFragment) {
         CoroutineScope(Dispatchers.IO).launch {
             val tasks = taskDaoImpl.retrieveTasks()
             //Aqui o controller chama a view para atualizar a lista de tasks
-            //mainFragment.updateTaskList(tasks)
+            mainFragment.updateTaskList(tasks)
         }
     }
 
@@ -46,7 +46,7 @@ class MainController(private val mainFragment: MainFragment) {
         }
     }
 
-    fun deleteTask(task: Task) {
+    fun removeTask(task: Task) {
         //Aqui o controller chama o model para deletar a task
         CoroutineScope(Dispatchers.IO).launch {
             taskDaoImpl.deleteTask(task)
