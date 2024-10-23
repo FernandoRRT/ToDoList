@@ -11,11 +11,13 @@ import android.view.inputmethod.InputMethodManager.HIDE_NOT_ALWAYS
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import br.edu.ifsp.scl.sdm.todolist.R
 import br.edu.ifsp.scl.sdm.todolist.controller.TaskPresenter
+import br.edu.ifsp.scl.sdm.todolist.controller.TaskViewModel
 import br.edu.ifsp.scl.sdm.todolist.databinding.FragmentMainBinding
 import br.edu.ifsp.scl.sdm.todolist.model.entity.Task
 import br.edu.ifsp.scl.sdm.todolist.model.entity.Task.Companion.TASK_DONE_FALSE
@@ -23,7 +25,7 @@ import br.edu.ifsp.scl.sdm.todolist.model.entity.Task.Companion.TASK_DONE_TRUE
 import br.edu.ifsp.scl.sdm.todolist.view.adapter.OnTaskClickListener
 import br.edu.ifsp.scl.sdm.todolist.view.adapter.TaskAdapter
 
-class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
+class MainFragment : Fragment(), OnTaskClickListener {
     private lateinit var fmb: FragmentMainBinding
 
     // Data source
@@ -44,11 +46,15 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
 //        MainController(this)
 //    }
 
-    //Presenter
-    private val taskPresenter: TaskPresenter by lazy {
-        TaskPresenter(this)
-    }
+//Presenter: não usamos mais, agora usamos um viewModel
+//    private val taskPresenter: TaskPresenter by lazy {
+//        TaskPresenter(this)
+//    }
 
+
+    private val taskViewModel: TaskViewModel by viewModels {
+        TaskViewModel.TaskViewModelFactory
+    }
 
     // Communication constants
     companion object {
@@ -70,12 +76,12 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
                     taskList.indexOfFirst { it.time == receivedTask.time }.also { position ->
 //se a posição for diferente de -1, então o item já existe na lista
                         if (position != -1) {
-                            taskPresenter.editTask(receivedTask)
+                            taskViewModel.editTask(receivedTask)
                             taskList[position] = receivedTask
                             tasksAdapter.notifyItemChanged(position)
                         } else {
 //se a posição for igual a -1, então o item não existe na lista
-                            taskPresenter.insertTask(receivedTask)
+                            taskViewModel.insertTask(receivedTask)
                             taskList.add(receivedTask)
                             tasksAdapter.notifyItemInserted(taskList.lastIndex)
                         }
@@ -89,7 +95,19 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
                 )
             }
         }
-        taskPresenter.getTasks()
+
+//Eu preciso passar um onwer para o observer, então eu passei o lifecycleOwner
+//E preciso passar um observer, então eu passei uma lambda que recebe uma lista de tasks
+//Se ela for notificada, ela vai chamar a função updateTaskList
+        taskViewModel.tasksMld.observe(requireActivity()) { tasks ->
+            taskList.clear()
+            tasks.forEachIndexed { index, task ->
+                taskList.add(task)
+                tasksAdapter.notifyItemChanged(index)
+            }
+        }
+
+        taskViewModel.getTasks()
     }
 
     override fun onCreateView(
@@ -115,7 +133,7 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
     override fun onTaskClick(position: Int) = navigateToTaskFragment(position, false)
 
     override fun onRemoveTaskMenuItemClick(position: Int) {
-        taskPresenter.removeTask(taskList[position])
+        taskViewModel.removeTask(taskList[position])
         taskList.removeAt(position)
         tasksAdapter.notifyItemRemoved(position)
     }
@@ -126,7 +144,7 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
         //passa um booleano para o controller para atualizar o estado da task como done
         taskList[position].apply {
             done = if (checked) TASK_DONE_TRUE else TASK_DONE_FALSE
-            taskPresenter.editTask(this)
+            taskViewModel.editTask(this)
         }
     }
 
@@ -135,16 +153,6 @@ class MainFragment : Fragment(), OnTaskClickListener, TaskPresenter.TaskView {
             navController.navigate(
                 MainFragmentDirections.actionMainFragmentToTaskFragment(it, editTask)
             )
-        }
-    }
-
-    //chamei um override pois o presenter vai chamar essa função para atualizar a lista de tasks
-    //e agora eu precisava sobrescrever ela
-   override fun updateTaskList(tasks: List<Task>) {
-        taskList.clear()
-        tasks.forEachIndexed { index, task ->
-            taskList.add(index, task)
-            tasksAdapter.notifyItemChanged(index)
         }
     }
 }

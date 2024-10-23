@@ -34,8 +34,8 @@ class MainController(private val mainFragment: MainFragment) {
         //Aqui o controller chama o model para recuperar as tasks. Ela dá um retrieveTasks e passa para a view
         CoroutineScope(Dispatchers.IO).launch {
             val tasks = taskDaoImpl.retrieveTasks()
-            //Aqui o controller chama a view para atualizar a lista de tasks
-            mainFragment.updateTaskList(tasks)
+            //Aqui o controller chamava a view para atualizar a lista de tasks, mas nós eliminamos essa chamada no mainFragment
+//            mainFragment.updateTaskList(tasks)
         }
     }
 
